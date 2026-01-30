@@ -6,33 +6,36 @@ public class Timetable {
 
     private final Map<DayOfWeek, Map<TimeOfDay, ArrayList<TrainingSession>>> timetable = new HashMap<>();
 
+    public Timetable() {
+        for (DayOfWeek day : DayOfWeek.values()) {
+            timetable.put(day, new TreeMap<>());
+        }
+    }
 
     public void addNewTrainingSession(TrainingSession trainingSession) {
         //сохраняем занятие в расписании
         DayOfWeek day = trainingSession.getDayOfWeek();
         TimeOfDay time = trainingSession.getTimeOfDay();
-        TreeMap<TimeOfDay, ArrayList<TrainingSession>> daySessions =
-                (TreeMap<TimeOfDay, ArrayList<TrainingSession>>) timetable.get(day);
+        Map<TimeOfDay, ArrayList<TrainingSession>> daySessions = timetable.get(day);
         ArrayList<TrainingSession> timeSessions = daySessions.getOrDefault(time, new ArrayList<>());
         timeSessions.add(trainingSession);
         daySessions.put(time, timeSessions);
-        timetable.compute(day, (k, v) -> daySessions);
+        timetable.put(day, daySessions);
         System.out.println(timetable);
     }
 
     public ArrayList<TrainingSession> getTrainingSessionsForDay(DayOfWeek dayOfWeek) {
         //как реализовать, тоже непонятно, но сложность должна быть О(1)
         ArrayList<TrainingSession> trainingList = new ArrayList<>();
-        for (TimeOfDay time : timetable.get(dayOfWeek).keySet()) {
-            trainingList.addAll(timetable.get(dayOfWeek).get(time));
+        for (ArrayList<TrainingSession> traningInTime: timetable.get(dayOfWeek).values()) {
+            trainingList.addAll(traningInTime);
         }
         return trainingList;
     }
 
     public ArrayList<TrainingSession> getTrainingSessionsForDayAndTime(DayOfWeek dayOfWeek, TimeOfDay timeOfDay) {
         //как реализовать, тоже непонятно, но сложность должна быть О(1)
-        return timetable.get(dayOfWeek).get(timeOfDay);
-        // вроде бы тут возвращается список тренироваок в конкретное время
+        return timetable.get(dayOfWeek).getOrDefault(timeOfDay, new ArrayList<>());
     }
 
     public List<CounterOfTrainingsForCoach> getCountByCoaches() {
@@ -41,8 +44,7 @@ public class Timetable {
 
         for (Map.Entry<DayOfWeek, Map<TimeOfDay, ArrayList<TrainingSession>>> dayEntry : timetable.entrySet()) {
 
-            TreeMap<TimeOfDay, ArrayList<TrainingSession>> daySchedule =
-                    (TreeMap<TimeOfDay, ArrayList<TrainingSession>>) dayEntry.getValue();
+            Map<TimeOfDay, ArrayList<TrainingSession>> daySchedule = dayEntry.getValue();
 
             for (Map.Entry<TimeOfDay, ArrayList<TrainingSession>> timeEntry : daySchedule.entrySet()) {
 
@@ -58,13 +60,10 @@ public class Timetable {
         for (Map.Entry<Coach, Integer> entry : countMap.entrySet()) {
             counterOfTrainings.add(new CounterOfTrainingsForCoach(entry.getKey(), entry.getValue()));
         }
+        counterOfTrainings.sort(Collections.reverseOrder());
 
         return counterOfTrainings;
     }
 
-    public Timetable() {
-        for (DayOfWeek day : DayOfWeek.values()) {
-            timetable.put(day, new TreeMap<>());
-        }
-    }
+
 }
